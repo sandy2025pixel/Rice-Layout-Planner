@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rice Field Layout Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Lora:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-dark: #1a3a2a;
+  --green-mid: #2d5c3f;
+  --green-accent: #4a9e6a;
+  --green-light: #a8d5b5;
+  --green-pale: #e8f5ed;
+  --amber: #d4872a;
+  --amber-light: #f5e6ce;
+  --red: #c0392b;
+  --red-light: #fdecea;
+  --cream: #faf8f3;
+  --sand: #f0ebe0;
+  --ink: #1c1c1c;
+  --ink-mid: #4a4a4a;
+  --ink-light: #8a8a8a;
+  --border: #d8d2c5;
+  --white: #ffffff;
+  --cell: 78px;
+  --radius: 6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--cream);
+  color:var(--ink);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  line-height:1.6;
+  min-height:100vh;
+}
+header{
+  background:var(--green-dark);
+  padding:2.5rem 2rem 2rem;
+  position:relative;
+  overflow:hidden;
+}
+header::before{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    45deg,transparent,transparent 18px,
+    rgba(255,255,255,0.025) 18px,rgba(255,255,255,0.025) 19px
+  );
+}
+.header-inner{max-width:900px;margin:0 auto;position:relative}
+.header-eyebrow{
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--green-light);margin-bottom:10px;
+}
+header h1{
+  font-family:'Lora',serif;font-size:clamp(1.6rem,4vw,2.5rem);
+  font-weight:600;color:var(--white);line-height:1.2;margin-bottom:8px;
+}
+header p{font-size:14px;color:var(--green-light);max-width:520px;}
+.header-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);
+  border-radius:100px;padding:4px 12px;font-size:12px;color:var(--green-light);margin-top:12px;
+}
+.header-badge span{width:7px;height:7px;border-radius:50%;background:var(--green-accent);display:inline-block;}
+main{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:10px;padding:1.5rem;margin-bottom:1.25rem;
+}
+.card-title{
+  font-family:'Lora',serif;font-size:16px;font-weight:600;
+  color:var(--green-dark);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.step-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--green-dark);color:var(--white);
+  font-family:'DM Mono',monospace;font-size:11px;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.seg{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;width:fit-content;margin-bottom:14px;}
+.seg button{
+  border:none;background:transparent;padding:6px 16px;
+  font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;
+  color:var(--ink-mid);border-right:1px solid var(--border);transition:background 0.15s,color 0.15s;
+}
+.seg button:last-child{border-right:none}
+.seg button.active{background:var(--green-dark);color:var(--white);font-weight:500;}
+.tab-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab{
+  background:transparent;border:1px solid var(--border);border-radius:var(--radius);
+  padding:6px 16px;font-size:13px;cursor:pointer;color:var(--ink-mid);
+  font-family:'DM Sans',sans-serif;transition:all 0.15s;
+}
+.tab:hover{background:var(--sand);}
+.tab.active{background:var(--green-dark);color:var(--white);border-color:var(--green-dark);}
+.tab-content{display:none}.tab-content.active{display:block}
+.form-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.grow{flex:1;min-width:130px;}
+label{font-size:12px;color:var(--ink-mid);font-weight:500;}
+input[type=text],input[type=number],input[type=date],select{
+  height:38px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--cream);color:var(--ink);font-family:'DM Sans',sans-serif;
+  font-size:13px;outline:none;transition:border-color 0.15s;width:100%;
+}
+input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,select:focus{border-color:var(--green-accent);}
+.inp-sm{width:90px!important;}
+button{cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn{
+  height:38px;padding:0 18px;border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--white);color:var(--ink);font-size:13px;font-weight:500;
+  transition:all 0.15s;white-space:nowrap;
+}
+.btn:hover{background:var(--sand);}
+.btn-primary{background:var(--green-dark);color:var(--white);border-color:var(--green-dark);}
+.btn-primary:hover{background:var(--green-mid);}
+.btn-sm{height:30px;padding:0 12px;font-size:12px;}
+.upload-zone{
+  border:1.5px dashed var(--border);border-radius:8px;padding:1.5rem;
+  text-align:center;cursor:pointer;color:var(--ink-light);font-size:13px;
+  transition:background 0.15s,border-color 0.15s;
+}
+.upload-zone:hover{background:var(--sand);border-color:var(--green-accent);}
+.upload-zone input[type=file]{display:none}
+.vlist{margin-top:8px;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);}
+.vlist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.vcount{font-size:12px;color:var(--ink-mid);}
+.vrow{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--border);font-size:12px;}
+.vrow:last-child{border-bottom:none}
+.vrow:nth-child(even){background:var(--cream);}
+.vn{flex:1;font-weight:500;color:var(--ink);}
+.vd{color:var(--ink-light);font-family:'DM Mono',monospace;font-size:11px;min-width:130px;}
+.btn-icon{
+  width:24px;height:24px;border-radius:4px;border:1px solid var(--border);
+  background:transparent;display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--ink-mid);padding:0;transition:all 0.15s;
+}
+.btn-icon:hover{background:var(--red-light);border-color:var(--red);color:var(--red);}
+.msg{font-size:12px;margin-top:8px;padding:7px 12px;border-radius:var(--radius);}
+.msg.ok{background:#e6f7ee;color:#1a6b3a;border:1px solid #b3dfc5;}
+.msg.err{background:var(--red-light);color:var(--red);border:1px solid #f0b8b2;}
+.msg.info{background:#e8f0fb;color:#1a4a9e;border:1px solid #b3c9f5;}
+#mode-hint{
+  font-size:11px;color:var(--ink-light);background:var(--sand);
+  border-radius:var(--radius);padding:5px 10px;margin-bottom:10px;font-style:italic;
+}
+.grid-scroll{overflow-x:auto;margin-top:12px;}
+table.field{border-collapse:collapse;}
+table.field td,table.field th{
+  width:var(--cell);height:var(--cell);text-align:center;
+  vertical-align:middle;border:1px solid var(--border);font-size:11px;
+}
+table.field th{
+  background:var(--sand);font-weight:500;font-size:12px;color:var(--ink-mid);
+  width:30px;min-width:30px;height:28px;font-family:'DM Mono',monospace;
+}
+table.field td.empty{background:var(--cream);cursor:pointer;}
+table.field td.empty:hover{background:var(--sand);}
+table.field td.planted{background:#e6f7ee;cursor:pointer;}
+table.field td.planted:hover{border:2px solid var(--green-accent);}
+table.field td.conflict{background:var(--red-light);cursor:pointer;}
+table.field td.conflict:hover{border:2px solid var(--red);}
+table.field td.selected{outline:2.5px solid #2563eb;outline-offset:-2px;}
+.vcell{font-weight:500;font-size:11px;color:var(--green-dark);line-height:1.2;display:block;word-break:break-word;padding:0 2px;}
+.dcell{font-size:11px;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.3;}
+.clbl{font-size:10px;color:var(--red);display:block;}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-mid);margin-top:10px;}
+.legend span{display:flex;align-items:center;gap:5px;}
+.dot{width:13px;height:13px;border-radius:3px;flex-shrink:0;}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.score-card{background:var(--sand);border-radius:var(--radius);padding:10px 14px;}
+.score-label{font-size:11px;color:var(--ink-mid);margin-bottom:2px;}
+.score-val{font-size:20px;font-weight:500;font-family:'DM Mono',monospace;color:var(--green-dark);}
+.progress-bar{height:7px;border-radius:4px;background:var(--border);overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;border-radius:4px;background:var(--green-accent);transition:width 0.5s cubic-bezier(0.4,0,0.2,1);}
+.ctable{width:100%;border-collapse:collapse;font-size:12px;}
+.ctable th{
+  text-align:left;padding:6px 10px;color:var(--ink-mid);
+  border-bottom:2px solid var(--border);font-weight:500;background:var(--sand);
+}
+.ctable td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--ink);}
+.ctable tr:last-child td{border-bottom:none}
+.ctable tr:hover td{background:var(--cream);}
+.badge{padding:3px 8px;border-radius:100px;font-size:11px;font-weight:500;}
+.badge-ok{background:#e6f7ee;color:#1a6b3a;}
+.badge-warn{background:#fff7e0;color:#8a5a00;}
+.badge-danger{background:var(--red-light);color:var(--red);}
+footer{
+  text-align:center;padding:2rem;font-size:12px;color:var(--ink-light);
+  border-top:1px solid var(--border);background:var(--sand);
+}
+footer strong{color:var(--green-dark);}
+@media(max-width:600px){
+  :root{--cell:62px;}
+  header{padding:1.5rem 1rem;}
+  main{padding:1rem 0.75rem 3rem;}
+  .score-grid{grid-template-columns:repeat(2,1fr);}
+  .form-row{flex-direction:column;align-items:stretch;}
+  .inp-sm{width:100%!important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-eyebrow">&#9675; Crop Planning Tool</div>
+    <h1>Rice Field Layout Planner</h1>
+    <p>Arrange rice varieties in a field grid to maximise flowering-day separation and minimise cross-pollination risk.</p>
+    <div class="header-badge"><span></span> Auto-layout with conflict detection</div>
+  </div>
+</header>
+
+<main>
+
+<div class="card">
+  <div class="card-title"><span class="step-num">1</span> Load varieties</div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('manual',this)">&#9998; Manual entry</button>
+    <button class="tab" onclick="switchTab('excel',this)">&#128196; Excel / CSV</button>
+  </div>
+
+  <div id="tab-manual" class="tab-content active">
+    <div class="seg" id="mode-seg">
+      <button class="active" onclick="setMode('day',this)">Flowering day #</button>
+      <button onclick="setMode('date',this)">Calendar date</button>
+      <button onclick="setMode('both',this)">Both</button>
+    </div>
+    <div id="mode-hint">Flowering day = days after sowing (e.g. 85).</div>
+    <div class="form-row">
+      <div class="form-group grow"><label>Variety name</label><input type="text" id="vname" placeholder="e.g. IR 64"></div>
+      <div class="form-group" id="field-day"><label>Flowering day</label><input type="number" id="vday" class="inp-sm" placeholder="85" min="1" max="365"></div>
+      <div class="form-group" id="field-sowdate" style="display:none"><label>Sowing date</label><input type="date" id="vsowdate" style="width:145px"></div>
+      <div class="form-group" id="field-fldate" style="display:none"><label>Flowering date</label><input type="date" id="vfldate" style="width:145px"></div>
+      <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary" onclick="addVariety()">+ Add</button></div>
+    </div>
+    <div id="manual-msg"></div>
+  </div>
+
+  <div id="tab-excel" class="tab-content">
+    <p style="font-size:12px;color:var(--ink-mid);margin-bottom:10px;">
+      Accepted column names (case-insensitive):<br>
+      <code style="background:var(--sand);padding:2px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;">variety</code> or
+      <code style="background:var(--sand);padding:2px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;">name</code> &nbsp;&middot;&nbsp;
+      <code style="background:var(--sand);padding:2px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;">flowering_day</code> &nbsp;&middot;&nbsp;
+      <code style="background:var(--sand);padding:2px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;">flowering_date</code> &nbsp;&middot;&nbsp;
+      <code style="background:var(--sand);padding:2px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;">sowing_date</code>
+    </p>
+    <div class="upload-zone" onclick="document.getElementById('xlfile').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+      <input type="file" id="xlfile" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+      <div style="font-size:28px;margin-bottom:6px;">&#8593;</div>
+      Click to upload or drag &amp; drop<br>
+      <span style="font-size:11px;color:var(--ink-light);">Supports .xlsx, .xls, .csv</span>
+    </div>
+    <div id="excel-msg"></div>
+  </div>
+
+  <div id="vlist-wrap" style="display:none;margin-top:12px;">
+    <div class="vlist-header">
+      <span class="vcount" id="vcount">0 varieties</span>
+      <button class="btn btn-sm" onclick="clearVarieties()">&#10005; Clear all</button>
+    </div>
+    <div class="vlist" id="vlist"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="step-num">2</span> Grid &amp; threshold</div>
+  <div class="form-row">
+    <div class="form-group"><label>Rows</label><input type="number" id="nrows" class="inp-sm" min="1" max="20" value="4"></div>
+    <div class="form-group"><label>Columns</label><input type="number" id="ncols" class="inp-sm" min="1" max="20" value="5"></div>
+    <div class="form-group"><label>Risk threshold (days)</label><input type="number" id="threshold" class="inp-sm" min="1" max="60" value="5" onchange="renderAll()"></div>
+    <div class="form-group" style="align-self:flex-end"><button class="btn" onclick="buildGrid()">Build / reset grid</button></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="step-num">3</span> Auto-layout</div>
+  <div class="form-row" style="margin-bottom:10px;">
+    <div class="form-group grow">
+      <label>Strategy</label>
+      <select id="strategy">
+        <option value="spread">Maximum spread — hill-climb to maximise neighbour day-gap</option>
+        <option value="checker">Checkerboard — alternate early / late varieties</option>
+        <option value="diagonal">Diagonal stripes — flowering-day order runs diagonally</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <button class="btn btn-primary" onclick="autoLayout()">&#10022; Auto-place all</button>
+    <button class="btn" onclick="improveLayout()">&#8635; Improve (swap)</button>
+    <button class="btn" onclick="clearGrid()">&#10005; Clear grid</button>
+  </div>
+  <div id="auto-msg"></div>
+  <div id="score-wrap" style="display:none;margin-top:14px;">
+    <div class="score-grid">
+      <div class="score-card"><div class="score-label">Avg neighbour gap</div><div class="score-val" id="stat-score">—</div></div>
+      <div class="score-card"><div class="score-label">Min neighbour gap</div><div class="score-val" id="stat-min">—</div></div>
+      <div class="score-card"><div class="score-label">Conflicts</div><div class="score-val" id="stat-conf">—</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--ink-mid);margin-bottom:4px;">Separation quality</div>
+    <div class="progress-bar"><div class="progress-fill" id="score-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="step-num">4</span> Field layout <span style="font-size:11px;font-weight:400;color:var(--ink-light);margin-left:4px;">(click a cell for manual override)</span></div>
+  <div class="form-row" style="margin-bottom:6px;">
+    <div class="form-group grow">
+      <label>Manual override — variety to place</label>
+      <select id="place-select"><option value="">— pick a variety —</option></select>
+    </div>
+    <div class="form-group" style="align-self:flex-end"><button class="btn btn-sm" onclick="clearCell()">Clear cell</button></div>
+  </div>
+  <div id="sel-info" style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">Click any cell to select it for manual override.</div>
+  <div class="grid-scroll" id="grid-wrap"></div>
+  <div class="legend">
+    <span><span class="dot" style="background:#e6f7ee;border:1px solid #4a9e6a;"></span>Safe</span>
+    <span><span class="dot" style="background:var(--red-light);border:1px solid var(--red);"></span>Cross-pollination risk</span>
+    <span><span class="dot" style="background:var(--cream);border:1px solid var(--border);"></span>Empty</span>
+    <span><span class="dot" style="border:2.5px solid #2563eb;"></span>Selected</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="step-num">5</span> Neighbour conflict report</div>
+  <div id="report"><p style="font-size:13px;color:var(--ink-light);">Run auto-layout or place varieties to see the report.</p></div>
+</div>
+
+</main>
+
+<footer>
+  <strong>Rice Field Layout Planner</strong> &nbsp;&middot;&nbsp; Minimise cross-pollination risk through optimised variety placement &nbsp;&middot;&nbsp; All processing happens in your browser — no data is uploaded
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+let varieties=[], grid=[], nR=4, nC=5, selR=-1, selC=-1, inputMode='day';
+
+function setMode(mode,btn){
+  inputMode=mode;
+  document.querySelectorAll('#mode-seg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('field-day').style.display=(mode==='day'||mode==='both')?'flex':'none';
+  document.getElementById('field-sowdate').style.display=(mode==='date'||mode==='both')?'flex':'none';
+  document.getElementById('field-fldate').style.display=(mode==='date'||mode==='both')?'flex':'none';
+  const hints={
+    day:'Flowering day = days after sowing (e.g. 85).',
+    date:'Enter sowing date + flowering date — the day count is calculated automatically.',
+    both:'Enter whichever data you have. Flowering day takes priority if both are given.'
+  };
+  document.getElementById('mode-hint').textContent=hints[mode];
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showMsg(id,text,type){
+  const el=document.getElementById(id);
+  el.innerHTML=text?`<div class="msg ${type}">${text}</div>`:'';
+}
+
+function dateStrToDay(s,f){
+  if(!s||!f)return null;
+  const a=new Date(s),b=new Date(f);
+  if(isNaN(a)||isNaN(b))return null;
+  const d=Math.round((b-a)/86400000);
+  return d>0?d:null;
+}
+function fmtDate(str){
+  if(!str)return '';
+  const d=new Date(str);
+  if(isNaN(d))return str;
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+function formatLabel(v){
+  if(v.fldate&&v.sowdate)return `Day ${v.day} \u00b7 ${fmtDate(v.fldate)}`;
+  if(v.fldate)return `Day ${v.day} \u00b7 ${fmtDate(v.fldate)}`;
+  return `Day ${v.day}`;
+}
+
+function addVariety(){
+  const name=document.getElementById('vname').value.trim();
+  if(!name){showMsg('manual-msg','Enter a variety name.','err');return;}
+  let day=null,sowdate=null,fldate=null;
+  if(inputMode==='day'||inputMode==='both'){const dv=parseInt(document.getElementById('vday').value);if(!isNaN(dv)&&dv>0)day=dv;}
+  if(inputMode==='date'||inputMode==='both'){
+    sowdate=document.getElementById('vsowdate').value||null;
+    fldate=document.getElementById('vfldate').value||null;
+    if(sowdate&&fldate&&day===null){const c=dateStrToDay(sowdate,fldate);if(c)day=c;}
+  }
+  if(day===null){
+    const msgs={day:'Enter a valid flowering day.',date:'Enter both sowing and flowering dates.',both:'Enter at least a flowering day, or both dates.'};
+    showMsg('manual-msg',msgs[inputMode],'err');return;
+  }
+  if(varieties.find(v=>v.name.toLowerCase()===name.toLowerCase())){showMsg('manual-msg',`"${name}" is already in the list.`,'err');return;}
+  varieties.push({name,day,sowdate,fldate});
+  document.getElementById('vname').value='';
+  document.getElementById('vday').value='';
+  document.getElementById('vsowdate').value='';
+  document.getElementById('vfldate').value='';
+  showMsg('manual-msg',`Added ${name} \u2014 Day ${day}${fldate?' ('+fmtDate(fldate)+')':''}.`,'ok');
+  refreshVUI();
+}
+
+function handleDrop(e){e.preventDefault();const f=e.dataTransfer.files[0];if(f)handleFile(f);}
+function handleFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let rows=[];
+      if(ext==='csv'){
+        const text=new TextDecoder().decode(e.target.result);
+        const lines=text.trim().split(/\r?\n/);
+        const hdr=lines[0].split(',').map(h=>h.trim().toLowerCase());
+        const fi=(keys)=>hdr.findIndex(h=>keys.some(k=>h.includes(k)));
+        const vi=fi(['variety','name']);
+        const di=fi(['flowering_day','flower_day','day']);
+        const fdi=fi(['flowering_date','fl_date','flower_date']);
+        const sdi=fi(['sowing_date','sow_date','sow']);
+        if(vi<0){showMsg('excel-msg','CSV needs a variety or name column.','err');return;}
+        for(let i=1;i<lines.length;i++){
+          const c=lines[i].split(',');
+          const n=c[vi]?c[vi].trim():'';if(!n)continue;
+          let day=null,sowdate=null,fldate=null;
+          if(di>=0){const d=parseInt(c[di]);if(!isNaN(d)&&d>0)day=d;}
+          if(sdi>=0&&c[sdi])sowdate=c[sdi].trim();
+          if(fdi>=0&&c[fdi])fldate=c[fdi].trim();
+          if(day===null&&sowdate&&fldate)day=dateStrToDay(sowdate,fldate);
+          if(n&&day!==null)rows.push({name:n,day,sowdate,fldate});
+        }
+      }else{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const data=XLSX.utils.sheet_to_json(ws,{defval:''});
+        if(!data.length){showMsg('excel-msg','Sheet appears empty.','err');return;}
+        const keys=Object.keys(data[0]);
+        const fk=(tests)=>keys.find(k=>tests.some(t=>k.toLowerCase().includes(t)))||null;
+        const kv=fk(['variety','name']);
+        const kd=fk(['flowering_day','flower_day','day']);
+        const kfd=fk(['flowering_date','fl_date','flower_date']);
+        const ksd=fk(['sowing_date','sow_date','sow']);
+        if(!kv){showMsg('excel-msg','Sheet needs a variety or name column.','err');return;}
+        data.forEach(r=>{
+          const n=String(r[kv]).trim();if(!n||n==='undefined')return;
+          let day=null,sowdate=null,fldate=null;
+          if(kd){const d=parseInt(r[kd]);if(!isNaN(d)&&d>0)day=d;}
+          if(ksd&&r[ksd]){const raw=r[ksd];sowdate=raw instanceof Date?raw.toISOString().slice(0,10):String(raw).trim();}
+          if(kfd&&r[kfd]){const raw=r[kfd];fldate=raw instanceof Date?raw.toISOString().slice(0,10):String(raw).trim();}
+          if(day===null&&sowdate&&fldate)day=dateStrToDay(sowdate,fldate);
+          if(n&&day!==null)rows.push({name:n,day,sowdate,fldate});
+        });
+      }
+      if(!rows.length){showMsg('excel-msg','No valid rows found. Check column names.','err');return;}
+      let added=0;
+      rows.forEach(r=>{if(!varieties.find(v=>v.name.toLowerCase()===r.name.toLowerCase())){varieties.push(r);added++;}});
+      showMsg('excel-msg',`Loaded ${added} new variet${added===1?'y':'ies'}.`,'ok');
+      refreshVUI();
+    }catch(err){showMsg('excel-msg','Parse error: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function removeVariety(i){varieties.splice(i,1);refreshVUI();}
+function clearVarieties(){varieties=[];refreshVUI();}
+function refreshVUI(){
+  const wrap=document.getElementById('vlist-wrap');
+  const sel=document.getElementById('place-select');
+  if(!varieties.length){wrap.style.display='none';sel.innerHTML='<option value="">— pick a variety —</option>';return;}
+  wrap.style.display='block';
+  document.getElementById('vcount').textContent=`${varieties.length} variet${varieties.length===1?'y':'ies'} loaded`;
+  document.getElementById('vlist').innerHTML=varieties.map((v,i)=>
+    `<div class="vrow">
+      <span class="vn">${v.name}</span>
+      <span class="vd">${formatLabel(v)}</span>
+      <button class="btn-icon" onclick="removeVariety(${i})" title="Remove">&times;</button>
+    </div>`).join('');
+  sel.innerHTML='<option value="">— pick a variety —</option>'+
+    varieties.map((v,i)=>`<option value="${i}">${v.name} \u2014 ${formatLabel(v)}</option>`).join('');
+}
+
+function buildGrid(){
+  nR=Math.max(1,Math.min(20,parseInt(document.getElementById('nrows').value)||4));
+  nC=Math.max(1,Math.min(20,parseInt(document.getElementById('ncols').value)||5));
+  grid=Array.from({length:nR},()=>Array(nC).fill(null));
+  selR=-1;selC=-1;renderAll();
+}
+function clearGrid(){grid=Array.from({length:nR},()=>Array(nC).fill(null));selR=-1;selC=-1;document.getElementById('score-wrap').style.display='none';renderAll();}
+
+function nbrs(r,c){
+  const res=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    if(dr===0&&dc===0)continue;
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<nR&&nc>=0&&nc<nC)res.push([nr,nc]);
+  }
+  return res;
+}
+function cellScore(g,r,c){
+  if(!g[r][c])return 0;let s=0,cnt=0;
+  nbrs(r,c).forEach(([nr,nc])=>{if(g[nr][nc]){s+=Math.abs(g[r][c].day-g[nr][nc].day);cnt++;}});
+  return cnt?s/cnt:999;
+}
+function gridScore(g){let t=0,n=0;for(let r=0;r<nR;r++)for(let c=0;c<nC;c++)if(g[r][c]){t+=cellScore(g,r,c);n++;}return n?t/n:0;}
+function minNbrDiff(g){
+  let mn=Infinity;const seen=new Set();
+  for(let r=0;r<nR;r++)for(let c=0;c<nC;c++){
+    if(!g[r][c])continue;
+    nbrs(r,c).forEach(([nr,nc])=>{
+      if(!g[nr][nc])return;
+      const k=[Math.min(r*100+c,nr*100+nc),Math.max(r*100+c,nr*100+nc)].join('-');
+      if(!seen.has(k)){seen.add(k);mn=Math.min(mn,Math.abs(g[r][c].day-g[nr][nc].day));}
+    });
+  }
+  return mn===Infinity?0:mn;
+}
+function countConflicts(g){
+  const th=parseInt(document.getElementById('threshold').value)||5;
+  let cf=0;const seen=new Set();
+  for(let r=0;r<nR;r++)for(let c=0;c<nC;c++){
+    if(!g[r][c])continue;
+    nbrs(r,c).forEach(([nr,nc])=>{
+      if(!g[nr][nc])return;
+      const k=[Math.min(r*100+c,nr*100+nc),Math.max(r*100+c,nr*100+nc)].join('-');
+      if(!seen.has(k)){seen.add(k);if(Math.abs(g[r][c].day-g[nr][nc].day)<=th)cf++;}
+    });
+  }
+  return cf;
+}
+function updateScorePanel(){
+  const sc=gridScore(grid),mn=minNbrDiff(grid),cf=countConflicts(grid);
+  const days=varieties.map(v=>v.day);
+  const maxP=days.length>1?Math.max(...days)-Math.min(...days):1;
+  const pct=Math.min(100,Math.round((sc/Math.max(maxP,1))*100));
+  document.getElementById('stat-score').textContent=sc.toFixed(1)+'d';
+  document.getElementById('stat-min').textContent=mn+'d';
+  document.getElementById('stat-conf').textContent=cf;
+  document.getElementById('score-fill').style.width=pct+'%';
+  document.getElementById('score-wrap').style.display='block';
+  return cf;
+}
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+function autoLayout(){
+  if(!varieties.length){showMsg('auto-msg','Add varieties first.','err');return;}
+  const strategy=document.getElementById('strategy').value;
+  grid=Array.from({length:nR},()=>Array(nC).fill(null));
+  const cells=[];for(let r=0;r<nR;r++)for(let c=0;c<nC;c++)cells.push([r,c]);
+  const sorted=[...varieties].sort((a,b)=>a.day-b.day);
+  const n=Math.min(sorted.length,cells.length);
+  if(strategy==='spread'){
+    const sc=shuffle(cells);
+    sc.slice(0,n).forEach(([r,c],i)=>grid[r][c]={...sorted[i]});
+    let best=JSON.parse(JSON.stringify(grid)),bestScore=gridScore(grid);
+    for(let it=0;it<1400;it++){
+      const placed=[];for(let r=0;r<nR;r++)for(let c=0;c<nC;c++)if(grid[r][c])placed.push([r,c]);
+      if(placed.length<2)break;
+      const ai=Math.floor(Math.random()*placed.length),bi=Math.floor(Math.random()*placed.length);
+      if(ai===bi)continue;
+      const[r1,c1]=placed[ai],[r2,c2]=placed[bi];
+      [grid[r1][c1],grid[r2][c2]]=[grid[r2][c2],grid[r1][c1]];
+      const s=gridScore(grid);
+      if(s>bestScore){bestScore=s;best=JSON.parse(JSON.stringify(grid));}
+      else{[grid[r1][c1],grid[r2][c2]]=[grid[r2][c2],grid[r1][c1]];}
+    }
+    grid=best;
+  }else if(strategy==='checker'){
+    const half=Math.ceil(n/2);
+    const early=sorted.slice(0,half),late=sorted.slice(half);
+    let ei=0,li=0;
+    cells.forEach(([r,c])=>{
+      const even=(r+c)%2===0;
+      if(even&&ei<early.length)grid[r][c]={...early[ei++]};
+      else if(!even&&li<late.length)grid[r][c]={...late[li++]};
+      else if(even&&li<late.length)grid[r][c]={...late[li++]};
+      else if(!even&&ei<early.length)grid[r][c]={...early[ei++]};
+    });
+  }else{
+    const nD=nR+nC-1;const dcells=[];
+    for(let d=0;d<nD;d++)for(let r=0;r<nR;r++){const c=d-r;if(c>=0&&c<nC)dcells.push([r,c]);}
+    dcells.slice(0,n).forEach(([r,c],i)=>grid[r][c]={...sorted[i%sorted.length]});
+  }
+  const cf=updateScorePanel();
+  showMsg('auto-msg',`Placed ${n} variet${n===1?'y':'ies'}.${cf?` ${cf} conflict${cf===1?'':'s'} remain \u2014 try "Improve".`:' No conflicts detected.'}`,cf===0?'ok':'info');
+  renderAll();
+}
+
+function improveLayout(){
+  const placed=[];for(let r=0;r<nR;r++)for(let c=0;c<nC;c++)if(grid[r][c])placed.push([r,c]);
+  if(placed.length<2){showMsg('auto-msg','Need at least 2 varieties to improve.','info');return;}
+  for(let it=0;it<2500;it++){
+    const ai=Math.floor(Math.random()*placed.length),bi=Math.floor(Math.random()*placed.length);
+    if(ai===bi)continue;
+    const[r1,c1]=placed[ai],[r2,c2]=placed[bi];
+    const before=cellScore(grid,r1,c1)+cellScore(grid,r2,c2);
+    [grid[r1][c1],grid[r2][c2]]=[grid[r2][c2],grid[r1][c1]];
+    if(cellScore(grid,r1,c1)+cellScore(grid,r2,c2)<before)[grid[r1][c1],grid[r2][c2]]=[grid[r2][c2],grid[r1][c1]];
+  }
+  const cf=updateScorePanel();
+  showMsg('auto-msg',`Layout improved \u2014 ${cf} conflict${cf===1?'':'s'}, min gap: ${minNbrDiff(grid)} days.`,cf===0?'ok':'info');
+  renderAll();
+}
+
+function selectCell(r,c){
+  selR=r;selC=c;
+  const vi=parseInt(document.getElementById('place-select').value);
+  if(!isNaN(vi)&&vi>=0&&varieties[vi]){
+    grid[r][c]={...varieties[vi]};
+    document.getElementById('sel-info').textContent=`Placed ${varieties[vi].name} at R${r+1}, C${c+1}`;
+  }else{
+    const cur=grid[r][c];
+    document.getElementById('sel-info').textContent=cur
+      ?`Selected R${r+1}, C${c+1} \u2014 ${cur.name}, ${formatLabel(cur)}. Choose a variety above to replace.`
+      :`Selected R${r+1}, C${c+1} \u2014 empty. Choose a variety above, then click this cell.`;
+  }
+  renderAll();
+}
+function clearCell(){if(selR<0)return;grid[selR][selC]=null;document.getElementById('sel-info').textContent=`Cleared R${selR+1}, C${selC+1}`;renderAll();}
+
+function isConflict(r,c){
+  if(!grid[r][c])return false;
+  const th=parseInt(document.getElementById('threshold').value)||5;
+  return nbrs(r,c).some(([nr,nc])=>grid[nr][nc]&&Math.abs(grid[nr][nc].day-grid[r][c].day)<=th);
+}
+
+function cellLabel(v){
+  const d2=v.fldate?`<span class="dcell">D${v.day}&nbsp;${fmtDate(v.fldate)}</span>`:`<span class="dcell">D${v.day}</span>`;
+  return `<span class="vcell">${v.name}</span>${d2}`;
+}
+function renderAll(){renderGrid();renderReport();}
+function renderGrid(){
+  let h='<table class="field"><thead><tr><th></th>';
+  for(let c=0;c<nC;c++)h+=`<th>C${c+1}</th>`;
+  h+='</tr></thead><tbody>';
+  for(let r=0;r<nR;r++){
+    h+=`<tr><th>R${r+1}</th>`;
+    for(let c=0;c<nC;c++){
+      const v=grid[r][c],sel=(r===selR&&c===selC)?' selected':'';
+      if(!v)h+=`<td class="empty${sel}" onclick="selectCell(${r},${c})"></td>`;
+      else{
+        const conf=isConflict(r,c);
+        h+=`<td class="${conf?'conflict':'planted'}${sel}" onclick="selectCell(${r},${c})">${cellLabel(v)}${conf?'<span class="clbl">risk</span>':''}</td>`;
+      }
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table>';
+  document.getElementById('grid-wrap').innerHTML=h;
+}
+function renderReport(){
+  const th=parseInt(document.getElementById('threshold').value)||5;
+  const pairs=[];const seen=new Set();
+  for(let r=0;r<nR;r++)for(let c=0;c<nC;c++){
+    if(!grid[r][c])continue;
+    nbrs(r,c).forEach(([nr,nc])=>{
+      if(!grid[nr][nc])return;
+      const k=[Math.min(r*100+c,nr*100+nc),Math.max(r*100+c,nr*100+nc)].join('-');
+      if(!seen.has(k)){
+        seen.add(k);
+        pairs.push({
+          a:`R${r+1},C${c+1}`,na:grid[r][c].name,la:formatLabel(grid[r][c]),
+          b:`R${nr+1},C${nc+1}`,nb:grid[nr][nc].name,lb:formatLabel(grid[nr][nc]),
+          diff:Math.abs(grid[r][c].day-grid[nr][nc].day)
+        });
+      }
+    });
+  }
+  if(!pairs.length){document.getElementById('report').innerHTML='<p style="font-size:13px;color:var(--ink-light);">Place varieties on the grid to see the report.</p>';return;}
+  pairs.sort((a,b)=>a.diff-b.diff);
+  let h='<div style="overflow-x:auto"><table class="ctable"><thead><tr><th>Cells</th><th>Varieties</th><th>Day diff</th><th>Status</th></tr></thead><tbody>';
+  pairs.forEach(x=>{
+    const badge=x.diff===0?`<span class="badge badge-danger">same day</span>`:x.diff<=th?`<span class="badge badge-warn">${x.diff}d \u2014 risk</span>`:`<span class="badge badge-ok">${x.diff}d \u2014 safe</span>`;
+    h+=`<tr>
+      <td style="color:var(--ink-mid);font-family:'DM Mono',monospace;font-size:11px;">${x.a} \u2194 ${x.b}</td>
+      <td>${x.na}<br><span style="color:var(--ink-light);font-size:11px;">${x.nb}</span></td>
+      <td style="font-weight:500;font-family:'DM Mono',monospace;">${x.diff}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+  h+='</tbody></table></div>';
+  document.getElementById('report').innerHTML=h;
+}
+
+buildGrid();
+
+['vname','vday','vsowdate','vfldate'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')addVariety();});
+});
+</script>
+</body>
+</html>
